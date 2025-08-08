@@ -1,6 +1,6 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
-import { resolve } from "path"
+import path from "path"
 import { viteStaticCopy } from "vite-plugin-static-copy"
 
 // https://vite.dev/config/
@@ -8,7 +8,8 @@ export default defineConfig(() => {
     return {
         resolve: {
             alias: {
-                "@": resolve(__dirname, "src")
+                "@": path.resolve(__dirname, "src"),
+                "~tests": path.resolve(__dirname, "tests")
             }
         },
         plugins: [
@@ -23,9 +24,9 @@ export default defineConfig(() => {
             // target: "esnext", // breaks interval logic
             rollupOptions: {
                 input: {
-                    popup: resolve(__dirname, "index.html"),
-                    offscreen: resolve(__dirname, "offscreen.html"),
-                    background: resolve(__dirname, "src/background/background.ts")
+                    popup: path.resolve(__dirname, "index.html"),
+                    offscreen: path.resolve(__dirname, "offscreen.html"),
+                    background: path.resolve(__dirname, "src/background/background.ts")
                 },
                 output: {
                     entryFileNames: (chunk) => {
@@ -39,6 +40,12 @@ export default defineConfig(() => {
             },
             outDir: "dist",
             emptyOutDir: true
+        },
+        test: {
+            environment: "jsdom",
+            setupFiles: "./tests/setup.ts",
+            globals: true
         }
     }
 })
+
