@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    // "types": ["chrome", "webextension-polyfill", "node"], // ts autoloads types; no need for this line
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2020",
     "useDefineForClassFields": true,
