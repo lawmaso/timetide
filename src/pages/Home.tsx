@@ -1,39 +1,23 @@
-// ---------------------------------
-// built-in hooks from React
-// ---------------------------------
 import { useEffect, useRef, useState } from "react"
-
-// ---------------------------------
-// UI libraries
-// ---------------------------------
 import {
     Flex,
     HStack,
     VStack
 } from "@chakra-ui/react"
+
 import {
     PiArrowCounterClockwiseBold,
     PiArrowRightBold,
     PiPauseBold,
     PiPlayBold
 } from "react-icons/pi"
-
-// ---------------------------------
-// internal UI components
-// ---------------------------------
 import TimeInput from "@/components/ui/TimeInput"
 import { Tooltip } from "@/components/ui/tooltip"
 import { TimetideIconButton } from "@/components/ui/icon"
 
-// ---------------------------------
-// app types and config
-// ---------------------------------
 import type { TimerState } from "@/core/types/timerTypes"
 import { defaultTimerState } from "@/core/config/storageDefaults"
 
-// ---------------------------------
-// utilities
-// ---------------------------------
 import {
     calculateProgress,
     convertSecondsToTimeString,
@@ -42,9 +26,6 @@ import {
     validateTimeString
 } from "@/utils/utils"
 
-// ---------------------------------
-// services and controllers
-// ---------------------------------
 import { createI18nService } from "@/factories/serviceFactory"
 import { createTimetideController } from "@/factories/controllerFactory"
 

@@ -1,11 +1,5 @@
-// ---------------------------------
-// React and built-in hooks
-// ---------------------------------
 import React, { useEffect, useState } from "react"
 
-// ---------------------------------
-// UI libraries
-// ---------------------------------
 import {
     Flex,
     HStack,
@@ -23,16 +17,10 @@ import {
     LuVolumeOff
 } from "react-icons/lu"
 
-// ---------------------------------
-// internal UI components
-// ---------------------------------
 import { Switch } from "@/components/ui/switch"
 import { TimetideIcon } from "@/components/ui/icon"
 import { useColorMode, type ColorMode } from "@/components/ui/color-mode"
 
-// ---------------------------------
-// services and controllers
-// ---------------------------------
 import { createTimetideController } from "@/factories/controllerFactory"
 import { createI18nService } from "@/factories/serviceFactory"
 
