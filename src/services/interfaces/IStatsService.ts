@@ -1,4 +1,5 @@
-import type { AlarmType } from "@/core/types/alarmTypes";
+import type { AlarmType } from "@/core/types/alarmTypes"
+import type { DateRangeStats } from "@/core/types/statTypes"
 
 export interface IStatService {
     incrementStats(
@@ -6,4 +7,6 @@ export interface IStatService {
         day: Date,
         duration: number
     ): Promise<boolean>
+
+    getStatsForRange(start: Date, end: Date): Promise<DateRangeStats[]>
 }

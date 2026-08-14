@@ -420,6 +420,10 @@ export default class TimetideController {
         }
     }
 
+    async getStatsForRange(start: Date, end: Date) {
+        return this.statService.getStatsForRange(start, end)
+    }
+
     private calculateRunningTimeLeft(state: TimerState): {
         workSecondsLeft: number,
         restSecondsLeft: number,
