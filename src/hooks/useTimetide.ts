@@ -1,4 +1,3 @@
-// hooks/useTimetideTimer.ts
 import { useEffect, useRef, useState, useCallback } from "react"
 
 import type { TimerState } from "@/core/types/timerTypes"
@@ -6,6 +5,7 @@ import { defaultTimerState } from "@/core/config/storageDefaults"
 
 import {
     convertTimeStringToSeconds,
+    getSecondsRemaining,
     validateTimeString
 } from "@/utils/utils"
 
@@ -175,16 +175,36 @@ export function useTimetide() {
     ])
 
     const skip = useCallback(() => {
+        
         const validatedWorkTimeString = validateTimeString(localWorkTimeString)
         const validatedRestTimeString = validateTimeString(localRestTimeString)
-        const validatedWorkSecondsLeft = convertTimeStringToSeconds(validatedWorkTimeString)
-        const validatedRestSecondsLeft = convertTimeStringToSeconds(validatedRestTimeString)
+        const fullWorkSeconds = convertTimeStringToSeconds(validatedWorkTimeString)
+        const fullRestSeconds = convertTimeStringToSeconds(validatedRestTimeString)
 
-        const remainingWorkSeconds = localTimerState.mode === "work" ? workSecondsLeft : validatedWorkSecondsLeft
-        const remainingRestSeconds = localTimerState.mode === "rest" ? restSecondsLeft : validatedRestSecondsLeft
+        let remainingWorkSeconds = fullWorkSeconds
+        let remainingRestSeconds = fullRestSeconds
 
-        setWorkSecondsLeft(validatedWorkSecondsLeft)
-        setRestSecondsLeft(validatedRestSecondsLeft)
+        switch (localTimerState.mode) {
+            case "work":
+                remainingWorkSeconds = getSecondsRemaining(
+                    "work",
+                    localTimerState,
+                    workSecondsLeft,
+                    restSecondsLeft
+                )
+                break
+            case "rest":
+                remainingRestSeconds = getSecondsRemaining(
+                    "rest",
+                    localTimerState,
+                    workSecondsLeft,
+                    restSecondsLeft
+                )
+                break      
+        }
+
+        setWorkSecondsLeft(fullWorkSeconds)
+        setRestSecondsLeft(fullRestSeconds)
         setLocalWorkTimeString(validatedWorkTimeString)
         setLocalRestTimeString(validatedRestTimeString)
 

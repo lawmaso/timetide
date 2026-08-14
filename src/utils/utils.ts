@@ -1,3 +1,5 @@
+import type { TimerMode, TimerState } from "@/core/types/timerTypes"
+
 /**
  * Pads a potentially "short" time string with zero(s).
  * @param timeString the time string (from the input component).
@@ -111,4 +113,37 @@ export function calculateProgress(remainingSeconds: number, startedTimeString: s
  */
 export function timeStringInvalid(timeString: string): boolean {
     return convertTimeStringToSeconds(timeString) === 0
+}
+
+/**
+ * Determines the seconds remaining on a timer (for stats computation).
+ * 
+ * @param mode the current timer mode
+ * @param timerState local timer state
+ * @param workSecondsLeft seconds left on work timer
+ * @param restSecondsLeft seconds left on rest timer
+ * @returns the seconds remaining for the <mode> timer
+ */
+export function getSecondsRemaining(
+    mode: TimerMode,
+    timerState: TimerState,
+    workSecondsLeft: number,
+    restSecondsLeft: number
+): number {
+    if (timerState.status === "paused") {
+        return timerState.secondsRemainingAtPause ?? 0
+    }
+
+    if (timerState.status !== "running") {
+        return mode === "work"
+            ? workSecondsLeft
+            : restSecondsLeft
+    }
+
+    const expectedEnd = mode === "work"
+        ? timerState.expectedWorkTimerEnd
+        : timerState.expectedRestTimerEnd
+
+    if (!expectedEnd) return 0
+    return Math.max(0, Math.ceil((expectedEnd - Date.now()) / 1000))
 }
