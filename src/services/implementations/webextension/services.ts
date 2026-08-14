@@ -16,5 +16,5 @@ export const createBadgeService = () => new WebExtensionBadgeService()
 export const createI18nService = () => new WebExtensionI18nService()
 export const createNotificationService = () => new WebExtensionNotificationsService()
 export const createRuntimeService = () => sharedRuntimeService
-export const createStatsSerfice = () => new WebExtensionStatService(sharedStorageService)
+export const createStatService = () => new WebExtensionStatService(sharedStorageService)
 export const createStorageService = () => sharedStorageService

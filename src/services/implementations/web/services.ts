@@ -4,9 +4,11 @@ import WebBadgeService from "./WebBadgeService"
 import WebI18nService from "./WebI18nService"
 import WebNotificationsService from "./WebNotificationsService"
 import WebRuntimeService from "./WebRuntimeService"
+import WebStatService from "./WebStatService"
 import WebStorageService from "./WebStorageService"
 
 const sharedRuntimeService = new WebRuntimeService()
+const sharedStorageService = new WebStorageService()
 
 export const createAlarmsService = () => new WebAlarmsService()
 export const createAudioService = () => new WebAudioService(sharedRuntimeService)
@@ -18,4 +20,5 @@ export const createI18nService = () => {
 }
 export const createNotificationService = () => new WebNotificationsService()
 export const createRuntimeService = () => sharedRuntimeService
-export const createStorageService = () => new WebStorageService()
+export const createStatService = () => new WebStatService(sharedStorageService)
+export const createStorageService = () => sharedStorageService
