@@ -20,10 +20,8 @@ import {
     timeStringInvalid
 } from "@/utils/utils"
 
-import { createI18nService } from "@/factories/serviceFactory"
 import { useTimetide } from "@/hooks/useTimetide"
-
-const i18nService = createI18nService()
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function Home() {
     const {
@@ -39,6 +37,7 @@ export default function Home() {
         togglePlayPause,
         skip
     } = useTimetide()
+    const { i18n } = useI18n()
 
     if (loading) return
 
@@ -51,7 +50,7 @@ export default function Home() {
                 <TimeInput
                     loading={loading}
                     invalid={timeStringInvalid(localWorkTimeString)}
-                    title={i18nService.t("titleWorkTimeInput")}
+                    title={i18n.t("titleWorkTimeInput")}
                     time={localTimerState.mode === "idle"
                         ? localWorkTimeString
                         : localTimerState.mode !== "work"
@@ -70,7 +69,7 @@ export default function Home() {
                 <TimeInput
                     loading={loading}
                     invalid={timeStringInvalid(localRestTimeString)}
-                    title={i18nService.t("titleRestTimeInput")}
+                    title={i18n.t("titleRestTimeInput")}
                     time={localTimerState.mode === "idle" || localTimerState.mode === "work"
                         ? localRestTimeString
                         : convertSecondsToTimeString(restSecondsLeft)
@@ -86,7 +85,7 @@ export default function Home() {
             <Flex justifyContent="space-around">
                 <HStack>
                     <Tooltip
-                        content={i18nService.t("tooltipReset")}
+                        content={i18n.t("tooltipReset")}
                         positioning={{ placement: "left" }}
                     >
                         <TimetideIconButton size="md" variant="ghost" onClick={reset}>
@@ -95,14 +94,14 @@ export default function Home() {
                     </Tooltip>
                     <Tooltip
                         content={localTimerState.mode === "idle"
-                            ? i18nService.t("tooltipStartWork")
+                            ? i18n.t("tooltipStartWork")
                             : localTimerState.mode === "work"
                                 ? localTimerState.status === "paused"
-                                    ? i18nService.t("tooltipResumeWork")
-                                    : i18nService.t("tooltipPauseWork")
+                                    ? i18n.t("tooltipResumeWork")
+                                    : i18n.t("tooltipPauseWork")
                                 : localTimerState.status === "paused"
-                                    ? i18nService.t("tooltipResumeRest")
-                                    : i18nService.t("tooltipPauseRest")
+                                    ? i18n.t("tooltipResumeRest")
+                                    : i18n.t("tooltipPauseRest")
                         }
                         positioning={{ placement: "top" }}
                     >
@@ -122,8 +121,8 @@ export default function Home() {
                     </Tooltip>
                     <Tooltip
                         content={localTimerState.mode === "rest"
-                            ? i18nService.t("tooltipSkipRest")
-                            : i18nService.t("tooltipSkipWork")
+                            ? i18n.t("tooltipSkipRest")
+                            : i18n.t("tooltipSkipWork")
                         }
                         positioning={{ placement: "right" }}
                     >

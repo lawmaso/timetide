@@ -13,9 +13,9 @@ const sharedStorageService = new WebStorageService()
 export const createAlarmsService = () => new WebAlarmsService()
 export const createAudioService = () => new WebAudioService(sharedRuntimeService)
 export const createBadgeService = () => new WebBadgeService()
-export const createI18nService = () => {
+export const createI18nService = async () => {
     const webI18nService = new WebI18nService()
-    webI18nService.init()
+    await webI18nService.init()
     return webI18nService
 }
 export const createNotificationService = () => new WebNotificationsService()

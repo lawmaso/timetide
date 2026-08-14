@@ -22,10 +22,9 @@ import { TimetideIcon } from "@/components/ui/icon"
 import { useColorMode, type ColorMode } from "@/components/ui/color-mode"
 
 import { createTimetideController } from "@/factories/controllerFactory"
-import { createI18nService } from "@/factories/serviceFactory"
+import { useI18n } from "@/contexts/I18nContext"
 
 const timetideController = createTimetideController()
-const i18nService = createI18nService()
 
 type SettingOption = {
     id: string
@@ -36,6 +35,7 @@ type SettingOption = {
 
 export default function Settings() {
     const { colorMode, toggleColorMode } = useColorMode()
+    const { i18n } = useI18n()
 
     const [localTheme, setLocalTheme] = useState<ColorMode>(colorMode)
     const [soundsEnabled, setSoundsEnabled] = useState(false)
@@ -56,7 +56,7 @@ export default function Settings() {
     const settings: SettingOption[] = [
         {
             id: "sounds",
-            label: i18nService.t("settingSounds"),
+            label: i18n.t("settingSounds"),
             icon: soundsEnabled ? <LuVolume2 /> : <LuVolumeOff />,
             control: (
                 <Switch
@@ -71,7 +71,7 @@ export default function Settings() {
         },
         {
             id: "notifications",
-            label: i18nService.t("settingPopupNotifications"),
+            label: i18n.t("settingPopupNotifications"),
             icon: notificationsEnabled ? <LuBell /> : <LuBellOff />,
             control: (
                 <Switch
@@ -86,7 +86,7 @@ export default function Settings() {
         },
         {
                 id: "loopSessions",
-                label: i18nService.t("settingLoopSessions"),
+                label: i18n.t("settingLoopSessions"),
                 icon: loopSessions ? <LuRefreshCw /> : <LuRefreshCwOff />,
                 control: (
                     <Switch
@@ -101,7 +101,7 @@ export default function Settings() {
         },
         {
             id: "darkTheme",
-            label: i18nService.t("settingDarkTheme"),
+            label: i18n.t("settingDarkTheme"),
             icon: localTheme === "dark" ? <LuMoonStar /> : <LuMoon />,
             control: (
                 <Switch

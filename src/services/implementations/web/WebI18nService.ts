@@ -6,7 +6,7 @@ type MessagesJSON = {
 
 export default class WebI18nService implements II18nService {
     private messages: MessagesJSON = {}
-    private locale: string = "en"
+    private locale: string = "ko"
 
     async init() {
         await this.setLocale(this.locale)
