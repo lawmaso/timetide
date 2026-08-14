@@ -12,6 +12,7 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
+    "@chakra-ui/charts": "^3.36.1",
     "@chakra-ui/react": "^3.19.1",
     "@emotion/react": "^11.14.0",
     "@types/chrome": "^0.0.329",
@@ -20,6 +21,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
+    "recharts": "^3.10.1",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
