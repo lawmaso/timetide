@@ -1,0 +1,21 @@
+import WebAlarmsService from "./WebAlarmsService"
+import WebAudioService from "./WebAudioService"
+import WebBadgeService from "./WebBadgeService"
+import WebI18nService from "./WebI18nService"
+import WebNotificationsService from "./WebNotificationsService"
+import WebRuntimeService from "./WebRuntimeService"
+import WebStorageService from "./WebStorageService"
+
+const sharedRuntimeService = new WebRuntimeService()
+
+export const createAlarmsService = () => new WebAlarmsService()
+export const createAudioService = () => new WebAudioService(sharedRuntimeService)
+export const createBadgeService = () => new WebBadgeService()
+export const createI18nService = () => {
+    const webI18nService = new WebI18nService()
+    webI18nService.init()
+    return webI18nService
+}
+export const createNotificationService = () => new WebNotificationsService()
+export const createRuntimeService = () => sharedRuntimeService
+export const createStorageService = () => new WebStorageService()
