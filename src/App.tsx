@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from "react"
 import { Flex, HStack, Tabs } from "@chakra-ui/react"
-import { LuHouse, LuSettings } from "react-icons/lu"
+import { LuChartLine, LuHouse, LuSettings } from "react-icons/lu"
 import { TimetideIcon } from './components/ui/icon'
 import { TimetideHeading } from "./components/ui/TimetideHeading"
 
-export type TabName = "home" | "settings"
+export type TabName = "home" | "stats" | "settings"
 const Home = React.lazy(() => import("./pages/Home"))
+const Stats = React.lazy(() => import("./pages/Stats"))
 const Settings = React.lazy(() => import("./pages/Settings"))
 
 export interface TabContentProps {
@@ -21,6 +22,11 @@ export default function App() {
             value: "home",
             icon: <LuHouse />,
             content: () => <Home />
+        },
+        {
+            value: "stats",
+            icon: <LuChartLine />,
+            content: () => <Stats />
         },
         {
             value: "settings",

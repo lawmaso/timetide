@@ -8,7 +8,7 @@ import type { IRuntimeService } from "@/services/interfaces/IRuntimeService"
 import type { IStorageService } from "@/services/interfaces/IStorageService"
 
 // core types and configs
-import { defaultTimerState, defaultUserSettings } from "@/core/config/storageDefaults"
+import { defaultBaseStats, defaultDatedStats, defaultTimerState, defaultUserSettings } from "@/core/config/storageDefaults"
 import type { UserSettings } from "@/core/types/settingsTypes"
 import type { TimerState } from "@/core/types/timerTypes"
 import type { AlarmType } from "@/core/types/alarmTypes"
@@ -16,6 +16,7 @@ import { notificationI18nMap, type NotificationContext, type NotificationType } 
 
 // utilities
 import { convertTimeStringToSeconds } from "@/utils/utils"
+import type { BaseStats, DatedStats } from "@/core/types/statsTypes"
 
 export default class TimetideController {
     private alarmsService: IAlarmsService
@@ -268,20 +269,20 @@ export default class TimetideController {
     //     await this.saveStats(baseStats, datedStats)
     // }
 
-    // async getBaseStats(): Promise<BaseStats> {
-    //     return await this.storageService.get<BaseStats>("baseStats", "sync") ?? defaultBaseStats
-    // }
+    async getBaseStats(): Promise<BaseStats> {
+        return await this.storageService.get<BaseStats>("baseStats", "sync") ?? defaultBaseStats
+    }
 
-    // async getDatedStats(): Promise<DatedStats> {
-    //     return await this.storageService.get<DatedStats>("datedStats", "sync") ?? defaultDatedStats
-    // }
+    async getDatedStats(): Promise<DatedStats> {
+        return await this.storageService.get<DatedStats>("datedStats", "sync") ?? defaultDatedStats
+    }
 
-    // async resetStats(): Promise<void> {
-    //     await Promise.all([
-    //         this.storageService.set<BaseStats>("baseStats", defaultBaseStats, "sync"),
-    //         this.storageService.set<DatedStats>("datedStats", defaultDatedStats, "sync")
-    //     ])
-    // }
+    async resetStats(): Promise<void> {
+        await Promise.all([
+            this.storageService.set<BaseStats>("baseStats", defaultBaseStats, "sync"),
+            this.storageService.set<DatedStats>("datedStats", defaultDatedStats, "sync")
+        ])
+    }
 
     // ---------------------------
     // === SETTINGS MANAGEMENT ===
