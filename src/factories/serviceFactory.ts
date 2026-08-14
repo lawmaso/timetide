@@ -5,6 +5,7 @@ import type { IBadgeService } from "@/services/interfaces/IBadgeService"
 import type { II18nService } from "@/services/interfaces/II18nService"
 import type { INotificationsService } from "@/services/interfaces/INotificationsService"
 import type { IRuntimeService } from "@/services/interfaces/IRuntimeService"
+import type { IStatService } from "@/services/interfaces/IStatsService"
 import type { IStorageService } from "@/services/interfaces/IStorageService"
 
 // unified service implementations for extensions
@@ -15,15 +16,18 @@ import WebExtensionI18nService from "@/services/implementations/webextension/Web
 import WebExtensionNotificationsService from "@/services/implementations/webextension/WebExtensionNotificationsService"
 import WebExtensionRuntimeService from "@/services/implementations/webextension/WebExtensionRuntimeService"
 import WebExtensionStorageService from "@/services/implementations/webextension/WebExtensionStorageService"
+import WebExtensionStatService from "@/services/implementations/webextension/WebExtensionStatsService"
 
 const sharedWebExtensionRuntimeService = new WebExtensionRuntimeService()
+const sharedWebExtensionStorageService = new WebExtensionStorageService()
 export const createAlarmsService = (): IAlarmsService => new WebExtensionAlarmsService()
 export const createAudioService = (): IAudioService => new WebExtensionAudioService(sharedWebExtensionRuntimeService)
 export const createBadgeService = (): IBadgeService => new WebExtensionBadgeService()
 export const createI18nService = (): II18nService => new WebExtensionI18nService()
 export const createNotificationService = (): INotificationsService => new WebExtensionNotificationsService()
 export const createRuntimeService = (): IRuntimeService => sharedWebExtensionRuntimeService
-export const createStorageService = (): IStorageService => new WebExtensionStorageService()
+export const createStatService = (): IStatService => new WebExtensionStatService(sharedWebExtensionStorageService)
+export const createStorageService = (): IStorageService => sharedWebExtensionStorageService
 
 // service implementations for when running dev server (for testing)
 // import WebRuntimeService from "@/services/implementations/web/WebRuntimeService"

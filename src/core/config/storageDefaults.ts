@@ -1,5 +1,6 @@
 import type { TimerState } from "../types/timerTypes"
 import type { UserSettings } from "../types/settingsTypes"
+import type { UserStats } from "../types/statTypes"
 
 export const defaultTimerState: TimerState = {
     status: "idle",
@@ -16,3 +17,5 @@ export const defaultUserSettings: UserSettings = {
     notificationsEnabled: true,
     loopSessions: false
 }
+
+export const defaultUserStats: UserStats = {}

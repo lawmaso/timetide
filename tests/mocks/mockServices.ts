@@ -44,6 +44,11 @@ export function createMockServices() {
             sendMessage: vi.fn()
         },
 
+        // mock stat service
+        statService: {
+            incrementStats: vi.fn()
+        },
+
         // mock the storage service
         storageService: {
             get: vi.fn(),

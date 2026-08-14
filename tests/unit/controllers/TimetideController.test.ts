@@ -31,6 +31,7 @@ describe("TimetideController", () => {
             services.i18nService,
             services.notificationsService,
             services.runtimeService,
+            services.statService,
             services.storageService,
         )
     })

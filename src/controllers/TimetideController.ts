@@ -5,6 +5,7 @@ import type { IBadgeService } from "@/services/interfaces/IBadgeService"
 import type { II18nService } from "@/services/interfaces/II18nService"
 import type { INotificationsService } from "@/services/interfaces/INotificationsService"
 import type { IRuntimeService } from "@/services/interfaces/IRuntimeService"
+import type { IStatService } from "@/services/interfaces/IStatsService"
 import type { IStorageService } from "@/services/interfaces/IStorageService"
 
 // core types and configs
@@ -24,8 +25,9 @@ export default class TimetideController {
     private i18nService: II18nService
     private notificationsService: INotificationsService
     private runtimeService: IRuntimeService
+    private statService: IStatService
     private storageService: IStorageService
-
+    
     constructor(
         alarmsService: IAlarmsService,
         audioService: IAudioService,
@@ -33,6 +35,7 @@ export default class TimetideController {
         i18nService: II18nService,
         notificationsService: INotificationsService,
         runtimeService: IRuntimeService,
+        statService: IStatService,
         storageService: IStorageService
     ) {
         this.alarmsService = alarmsService
@@ -41,6 +44,7 @@ export default class TimetideController {
         this.i18nService = i18nService
         this.notificationsService = notificationsService
         this.runtimeService = runtimeService
+        this.statService = statService
         this.storageService = storageService
     }
 
@@ -112,9 +116,14 @@ export default class TimetideController {
      * Handles skipping the current sessions and updating user statistics
      * accordingly.
      */
-    async skipFrom(currState: TimerState, _workSecondsLeft = 0, _restSecondsLeft = 0): Promise<void> {
+    async skipFrom(currState: TimerState, workSecondsLeft = 0, restSecondsLeft = 0): Promise<void> {
         this.clearAlarmsAndBadge()
         const { loopSessions } = await this.getUserSettings()
+
+        const data = this.calculateSkipStats(currState, workSecondsLeft, restSecondsLeft)
+        if (data) {
+            await this.statService.incrementStats(data.alarm, new Date(), data.duration)
+        }
 
         switch (currState.mode) {
             case "idle":
@@ -141,12 +150,12 @@ export default class TimetideController {
      * statistics depending on the call to this function (ending timers
      * naturally vs. user-initiated endings through skipping/reset).
      */
-    resetSessionFrom(
+    async resetSessionFrom(
         currState: TimerState,
-        _updateStats = false,
-        _workSecondsLeft = 0,
-        _restSecondsLeft = 0
-    ): void {
+        updateStats = false,
+        workSecondsLeft = 0,
+        restSecondsLeft = 0
+    ): Promise<void> {
         this.updateTimerState(currState, {
             mode: "idle",
             status: "idle",
@@ -157,13 +166,9 @@ export default class TimetideController {
 
         this.clearAlarmsAndBadge()
 
-        // if (updateStats && currState.mode !== "idle") {
-        //     this.updateStatsOnReset(
-        //         currState,
-        //         workSecondsLeft,
-        //         restSecondsLeft
-        //     )
-        // }
+        if (updateStats && currState.mode !== "idle") {
+            await this.updateStatsOnReset(currState, workSecondsLeft, restSecondsLeft)
+        }
     }
 
     // --------------------------
@@ -216,7 +221,7 @@ export default class TimetideController {
 
         let workSecondsLeft = totalWorkSeconds
         let restSecondsLeft = totalRestSeconds
-        let shouldStartInterval: "work" | "rest" | undefined
+        let shouldStartInterval: AlarmType | undefined
 
         switch (status) {
             case "running":
@@ -240,48 +245,6 @@ export default class TimetideController {
             shouldStartInterval
         }
     }
-
-    // -------------------------
-    // === STATS MANGAGEMENT ===
-    // -------------------------
-
-    // async updateStats(statsPayload: StatsUpdatePayload): Promise<void> {
-    //     const {
-    //         type,
-    //         workIncrementSeconds = 0,
-    //         restIncrementSeconds = 0
-    //     } = statsPayload
-    //     const isoDate = new Date().toISOString().split("T")[0]
-
-    //     const [baseStats, datedStats] = await this.getStats()
-    //     const dailyStats = this.getDailyStats(datedStats, isoDate)
-
-    //     this.updateStatsData(
-    //         baseStats,
-    //         dailyStats,
-    //         type,
-    //         workIncrementSeconds,
-    //         restIncrementSeconds
-    //     )
-
-    //     datedStats[isoDate] = dailyStats
-    //     await this.saveStats(baseStats, datedStats)
-    // }
-
-    // async getBaseStats(): Promise<BaseStats> {
-    //     return await this.storageService.get<BaseStats>("baseStats", "sync") ?? defaultBaseStats
-    // }
-
-    // async getDatedStats(): Promise<DatedStats> {
-    //     return await this.storageService.get<DatedStats>("datedStats", "sync") ?? defaultDatedStats
-    // }
-
-    // async resetStats(): Promise<void> {
-    //     await Promise.all([
-    //         this.storageService.set<BaseStats>("baseStats", defaultBaseStats, "sync"),
-    //         this.storageService.set<DatedStats>("datedStats", defaultDatedStats, "sync")
-    //     ])
-    // }
 
     // ---------------------------
     // === SETTINGS MANAGEMENT ===
@@ -406,41 +369,56 @@ export default class TimetideController {
         this.badgeService.clearBadgeText()
     }
 
-    // private calculateSkipStats(
-    //     currState: TimerState,
-    //     workSecondsLeft: number,
-    //     restSecondsLeft: number
-    // ): StatsUpdatePayload | null {
-    //     const { mode, lastWorkTimeString, lastRestTimeString } = currState
+    private calculateSkipStats(
+        currState: TimerState,
+        workSecondsLeft: number,
+        restSecondsLeft: number
+    ): { alarm: AlarmType; duration: number } | null {
+        const { mode, lastWorkTimeString, lastRestTimeString } = currState
 
-    //     switch (mode) {
-    //         case "idle":
-    //             return { type: "skipWork" }
-    //         case "work":
-    //             const workIncrement = convertTimeStringToSeconds(lastWorkTimeString) - workSecondsLeft
-    //             return { type: "skipWork", workIncrementSeconds: workIncrement }
-    //         case "rest":
-    //             const restIncrement = convertTimeStringToSeconds(lastRestTimeString) - restSecondsLeft
-    //             return { type: "skipRest", restIncrementSeconds: restIncrement }
-    //         default:
-    //             return null
-    //     }
-    // }
+        switch (mode) {
+            case "work": {
+                const duration = convertTimeStringToSeconds(lastWorkTimeString) - workSecondsLeft
+                return duration > 0
+                    ? { alarm: "work", duration }
+                    : null
+            }
+            case "rest": {
+                const duration = convertTimeStringToSeconds(lastRestTimeString) - restSecondsLeft
+                return duration > 0
+                    ? { alarm: "rest", duration }
+                    : null
+            }
+            case "idle":
+            default:
+                return null
+        }
+    }
 
-    // private updateStatsOnReset(
-    //     currState: TimerState,
-    //     workSecondsLeft: number,
-    //     restSecondsLeft: number
-    // ): void {
-    //     const totalWorkSeconds = convertTimeStringToSeconds(currState.lastWorkTimeString)
-    //     const totalRestSeconds = convertTimeStringToSeconds(currState.lastRestTimeString)
-
-    //     this.updateStats({
-    //         type: "reset",
-    //         workIncrementSeconds: totalWorkSeconds - Math.max(0, workSecondsLeft),
-    //         restIncrementSeconds: totalRestSeconds - Math.max(0, restSecondsLeft)
-    //     })
-    // }
+    private async updateStatsOnReset(
+        currState: TimerState,
+        workSecondsLeft: number,
+        restSecondsLeft: number
+    ): Promise<void> {
+        switch (currState.mode) {
+            case "work": {
+                const totalWorkSeconds = convertTimeStringToSeconds(currState.lastWorkTimeString)
+                const elapsed = totalWorkSeconds - Math.max(0, workSecondsLeft)
+                if (elapsed > 0) {
+                    await this.statService.incrementStats("work", new Date(), elapsed)
+                }
+                return
+            }
+            case "rest": {
+                const totalRestSeconds = convertTimeStringToSeconds(currState.lastRestTimeString)
+                const elapsed = totalRestSeconds - Math.max(0, restSecondsLeft)
+                if (elapsed > 0) {
+                    await this.statService.incrementStats("rest", new Date(), elapsed)
+                }
+                return
+            }
+        }
+    }
 
     private calculateRunningTimeLeft(state: TimerState): {
         workSecondsLeft: number,
@@ -559,17 +537,19 @@ export default class TimetideController {
     ): Promise<void> {
         switch (alarmType) {
             case "work":
-                // await this.updateStats({
-                //     type: "work",
-                //     workIncrementSeconds: convertTimeStringToSeconds(timerState.lastWorkTimeString)
-                // })
+                await this.statService.incrementStats(
+                    "work",
+                    new Date(),
+                    convertTimeStringToSeconds(timerState.lastWorkTimeString)
+                )
                 this.startRestFrom(timerState)
                 break
             case "rest":
-                // await this.updateStats({
-                //     type: "rest",
-                //     restIncrementSeconds: convertTimeStringToSeconds(timerState.lastRestTimeString)
-                // })
+                await this.statService.incrementStats(
+                    "work",
+                    new Date(),
+                    convertTimeStringToSeconds(timerState.lastWorkTimeString)
+                )
 
                 const { loopSessions } = await this.getUserSettings()
                 if (loopSessions) {

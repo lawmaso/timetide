@@ -7,6 +7,7 @@ import {
     createI18nService,
     createNotificationService,
     createRuntimeService,
+    createStatService,
     createStorageService
 } from "./serviceFactory"
 
@@ -18,6 +19,7 @@ export const createTimetideController = (): TimetideController => {
         createI18nService(),
         createNotificationService(),
         createRuntimeService(),
+        createStatService(),
         createStorageService()
     )
 }
