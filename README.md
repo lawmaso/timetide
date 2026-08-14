@@ -15,9 +15,9 @@
 
 <p align="center">
     <!-- github related -->
-    <img src="https://img.shields.io/github/languages/top/justmaso/timetide?color=20B2AA" alt="top language in the repository">
-    <img src="https://img.shields.io/github/languages/code-size/justmaso/timetide?color=20B2AA" alt="code size">
-    <img src="https://img.shields.io/github/last-commit/justmaso/timetide?color=20B2AA" alt="last commit">
+    <img src="https://img.shields.io/github/languages/top/lawmaso/timetide?color=20B2AA" alt="top language in the repository">
+    <img src="https://img.shields.io/github/languages/code-size/lawmaso/timetide?color=20B2AA" alt="code size">
+    <img src="https://img.shields.io/github/last-commit/lawmaso/timetide?color=20B2AA" alt="last commit">
     <br>
     <!-- extension related -->
     <img src="https://img.shields.io/chrome-web-store/stars/ljgjcfoeolmdehpfcjmadbkngiempmlj?color=20B2AA" alt="chrome web store stars">
@@ -35,8 +35,8 @@ Boost your productivity with Timetide—the ultimate time management extension i
 - 🔁 **Session Looping**—choose to automatically repeat sessions for uninterrupted focus.
 - 🌓 **Dark Theme**—easily switch between light and dark themes to reduce eye strain.
 - 💬 **Toolbar Indicator**—visual badge text shows the current timer running at a glance when pinned.
-- 👩‍💻 **Side Panel**—persistent user interface without disrupting your browsing experience.
-- 🌍 **Internationalized**—available in 50+ locales across 44+ languages for a seamless global experience.
+- 👩‍💻 **Side Panel**—persistent UI without disrupting your browsing experience.
+- 🌍 **Internationalized**—available in 51 locales across 44+ languages for a seamless global experience.
 
 ## Legal Note
 Pomodoro® and The Pomodoro® Technique are trademarks of Francesco Cirillo. Timetide is not affiliated with or associated with, or endorsed by Pomodoro®, The Pomodoro® Technique or Francesco Cirillo.
