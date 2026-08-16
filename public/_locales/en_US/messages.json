@@ -15,6 +15,7 @@
     "settingPopupNotifications": { "message": "pop-up notifications" },
     "settingLoopSessions": { "message": "loop sessions" },
     "settingDarkTheme": { "message": "dark theme" },
+    "settingLanguage": { "message": "language" },
     "badgeWork": { "message": "work" },
     "badgeRest": { "message": "rest" },
     "badgePaused": { "message": "..." },

@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react"
 
 import {
+    createListCollection,
     Flex,
     HStack,
+    Portal,
+    Select,
     Separator,
     Text
 } from "@chakra-ui/react"
 import {
     LuBell,
     LuBellOff,
+    LuLanguages,
     LuMoon,
     LuMoonStar,
     LuRefreshCw,
@@ -21,10 +25,10 @@ import { Switch } from "@/components/ui/switch"
 import { TimetideIcon } from "@/components/ui/icon"
 import { useColorMode, type ColorMode } from "@/components/ui/color-mode"
 
-import { createTimetideController } from "@/factories/controllerFactory"
+import { useController } from "@/contexts/TimetideControllerContext"
 import { useI18n } from "@/contexts/I18nContext"
-
-const timetideController = createTimetideController()
+import { AVAILABLE_LOCALES, LOCALE_DATA } from "@/utils/utils"
+import { groupBy } from "es-toolkit"
 
 type SettingOption = {
     id: string
@@ -35,7 +39,18 @@ type SettingOption = {
 
 export default function Settings() {
     const { colorMode, toggleColorMode } = useColorMode()
-    const { i18n } = useI18n()
+    const { controller: timetideController } = useController()
+    
+    const { t, setLocale, locale } = useI18n()
+    const locales = createListCollection({
+        items: AVAILABLE_LOCALES.map((locale) => ({
+            label: [LOCALE_DATA[locale].flag, t(`settingLanguage_${locale}`)].join(" "),
+            value: locale
+        }))
+    })
+    const continents = Object.entries(
+        groupBy(locales.items, (locale) => LOCALE_DATA[locale.value].continent)
+    )
 
     const [localTheme, setLocalTheme] = useState<ColorMode>(colorMode)
     const [soundsEnabled, setSoundsEnabled] = useState(false)
@@ -56,7 +71,7 @@ export default function Settings() {
     const settings: SettingOption[] = [
         {
             id: "sounds",
-            label: i18n.t("settingSounds"),
+            label: t("settingSounds"),
             icon: soundsEnabled ? <LuVolume2 /> : <LuVolumeOff />,
             control: (
                 <Switch
@@ -71,7 +86,7 @@ export default function Settings() {
         },
         {
             id: "notifications",
-            label: i18n.t("settingPopupNotifications"),
+            label: t("settingPopupNotifications"),
             icon: notificationsEnabled ? <LuBell /> : <LuBellOff />,
             control: (
                 <Switch
@@ -86,7 +101,7 @@ export default function Settings() {
         },
         {
                 id: "loopSessions",
-                label: i18n.t("settingLoopSessions"),
+                label: t("settingLoopSessions"),
                 icon: loopSessions ? <LuRefreshCw /> : <LuRefreshCwOff />,
                 control: (
                     <Switch
@@ -101,7 +116,7 @@ export default function Settings() {
         },
         {
             id: "darkTheme",
-            label: i18n.t("settingDarkTheme"),
+            label: t("settingDarkTheme"),
             icon: localTheme === "dark" ? <LuMoonStar /> : <LuMoon />,
             control: (
                 <Switch
@@ -116,6 +131,49 @@ export default function Settings() {
                     }}
                     colorPalette="timetide"
                 />
+            )
+        },
+        {
+            id: "language",
+            label: t("settingLanguage"),
+            icon: <LuLanguages />,
+            control: (
+                <Select.Root
+                    collection={locales}
+                    defaultValue={[locale]}
+                    size="md"
+                    width="180px"
+                    onValueChange={async (e) => {
+                        setLocale(e.value[0])
+                        await timetideController.updateUserSettings("locale", e.value[0])
+                    }}
+                >
+                    <Select.Control>
+                        <Select.Trigger>
+                        <Select.ValueText placeholder={locale} />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                        <Select.Indicator />
+                        </Select.IndicatorGroup>
+                    </Select.Control>
+                    <Portal>
+                        <Select.Positioner>
+                        <Select.Content maxH="165px">
+                            {continents.map(([continent, items]) => (
+                                <Select.ItemGroup key={continent}>
+                                    <Select.ItemGroupLabel>{continent}</Select.ItemGroupLabel>
+                                    {items.map((locale) => (
+                                        <Select.Item item={locale} key={locale.value}>
+                                            {locale.label}
+                                            <Select.ItemIndicator />
+                                        </Select.Item>
+                                    ))}
+                                </Select.ItemGroup>
+                            ))}
+                        </Select.Content>
+                        </Select.Positioner>
+                    </Portal>
+                </Select.Root>
             )
         }
     ]

@@ -9,11 +9,11 @@ import {
     validateTimeString
 } from "@/utils/utils"
 
-import { createTimetideController } from "@/factories/controllerFactory"
-
-const timetideController = createTimetideController()
+import { useController } from "@/contexts/TimetideControllerContext"
 
 export function useTimetide() {
+    const { controller: timetideController } = useController()
+
     // restoration flag
     const [loading, setLoading] = useState(true)
 
@@ -28,7 +28,7 @@ export function useTimetide() {
     const [workSecondsLeft, setWorkSecondsLeft] = useState(0)
     const [restSecondsLeft, setRestSecondsLeft] = useState(0)
 
-    // @ts-expect-error
+    // @ts-ignore
     const intervalID = useRef<NodeJS.Timeout | null>(null)
 
     const clearCurrentInterval = useCallback(() => {

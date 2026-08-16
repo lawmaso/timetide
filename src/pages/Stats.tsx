@@ -9,10 +9,8 @@ import { convertSecondsToTimeString, getTimePartitions } from "@/utils/utils"
 import SeedStatsButton from "@/dev/SeedStatsButton"
 import { Box, ColorSwatch, createListCollection, Flex, HStack, Portal, Select, Span, Stack, Text } from "@chakra-ui/react"
 
-import { createTimetideController } from "@/factories/controllerFactory"
+import { useController } from "@/contexts/TimetideControllerContext"
 import { useI18n } from "@/contexts/I18nContext"
-
-const timetideController = createTimetideController()
 
 type DatedData = {
     isoDate: string
@@ -23,15 +21,18 @@ type DatedData = {
 const RANGE_DAYS = 30
 
 const timePeriods = createListCollection({
-  items: [
-    { label: "last 7 days", value: "last_7_days" },
-    { label: "current month", value: "current_month" },
-    { label: "last month", value: "last_month" },
-  ],
+    items: [
+        { label: "last 7 days", value: "L7" },
+        { label: "last 14 days", value: "L14" },
+        { label: "last 30 days", value: "L30" },
+        { label: "last 90 days", value: "L90" },
+        { label: "all time", value: "L"}
+    ],
 })
 
 export default function Stats() {
-    const { i18n } = useI18n()
+    const { controller: timetideController } = useController()
+    const { t } = useI18n()
 
     const [timetideDatedData, setTimetideDatedData] = useState<DatedData[]>([])
 
@@ -78,9 +79,8 @@ export default function Stats() {
     const chart = useChart({
         data: timetideDatedData,
         series: [
-            { name: "workSeconds", label: i18n.t("titleWorkTimeInput"), color: "timetide.400" },
-            { name: "restSeconds", label: i18n.t("titleRestTimeInput"), color: "gray.300" },
-
+            { name: "workSeconds", label: t("titleWorkTimeInput"), color: "timetide.400" },
+            { name: "restSeconds", label: t("titleRestTimeInput"), color: "gray.300" },
         ]
     })
 
@@ -104,9 +104,9 @@ export default function Stats() {
                 <Portal>
                     <Select.Positioner>
                     <Select.Content>
-                        {timePeriods.items.map((framework) => (
-                        <Select.Item item={framework} key={framework.value}>
-                            {framework.label}
+                        {timePeriods.items.map((period) => (
+                        <Select.Item item={period} key={period.value}>
+                            {period.label}
                             <Select.ItemIndicator />
                         </Select.Item>
                         ))}
@@ -152,11 +152,11 @@ export default function Stats() {
                                             return (
                                                 <Flex key={index} gap="1.5" wrap="wrap" align="center" _icon={{ boxSize: "2.5" }}>
                                                     {seriesConfig?.color && (
-                                                        <ColorSwatch rounded="full" boxSize="2" value={chart.color(seriesConfig.color)} />
+                                                        <ColorSwatch boxSize="2" value={chart.color(seriesConfig.color)} />
                                                     )}
                                                     <HStack justify="space-between" flex="1">
                                                         <Span color="fg.muted">{seriesConfig?.label || item.name}</Span>
-                                                        {/* fixed: use != null instead of truthy check, so 0 still renders */}
+                                                        {/* fix: use != null instead of truthy check, so 0 still renders */}
                                                         {item.value != null && (
                                                             <Text fontWeight="medium" fontVariantNumeric="tabular-nums">
                                                                 {formattedValue}
@@ -183,8 +183,8 @@ export default function Stats() {
                                             opacity: chart.getSeriesOpacity(graph.name, 0.6),
                                             cursor: "pointer"
                                         }}
-                                        onMouseEnter={() => chart.setHighlightedSeries(graph.name!)}
-                                        onMouseLeave={() => chart.setHighlightedSeries(null)}
+                                        // onMouseEnter={() => chart.setHighlightedSeries(graph.name!)}
+                                        // onMouseLeave={() => chart.setHighlightedSeries(null)}
                                     >
                                         <ColorSwatch boxSize="2" value={chart.color(graph.color)} />
                                         <Span color="fg.muted">{graph.label}</Span>

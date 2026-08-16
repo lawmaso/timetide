@@ -37,7 +37,7 @@ export default function Home() {
         togglePlayPause,
         skip
     } = useTimetide()
-    const { i18n } = useI18n()
+    const { t } = useI18n()
 
     if (loading) return
 
@@ -50,7 +50,7 @@ export default function Home() {
                 <TimeInput
                     loading={loading}
                     invalid={timeStringInvalid(localWorkTimeString)}
-                    title={i18n.t("titleWorkTimeInput")}
+                    title={t("titleWorkTimeInput")}
                     time={localTimerState.mode === "idle"
                         ? localWorkTimeString
                         : localTimerState.mode !== "work"
@@ -69,7 +69,7 @@ export default function Home() {
                 <TimeInput
                     loading={loading}
                     invalid={timeStringInvalid(localRestTimeString)}
-                    title={i18n.t("titleRestTimeInput")}
+                    title={t("titleRestTimeInput")}
                     time={localTimerState.mode === "idle" || localTimerState.mode === "work"
                         ? localRestTimeString
                         : convertSecondsToTimeString(restSecondsLeft)
@@ -85,7 +85,7 @@ export default function Home() {
             <Flex justifyContent="space-around">
                 <HStack>
                     <Tooltip
-                        content={i18n.t("tooltipReset")}
+                        content={t("tooltipReset")}
                         positioning={{ placement: "left" }}
                     >
                         <TimetideIconButton size="md" variant="ghost" onClick={reset}>
@@ -94,14 +94,14 @@ export default function Home() {
                     </Tooltip>
                     <Tooltip
                         content={localTimerState.mode === "idle"
-                            ? i18n.t("tooltipStartWork")
+                            ? t("tooltipStartWork")
                             : localTimerState.mode === "work"
                                 ? localTimerState.status === "paused"
-                                    ? i18n.t("tooltipResumeWork")
-                                    : i18n.t("tooltipPauseWork")
+                                    ? t("tooltipResumeWork")
+                                    : t("tooltipPauseWork")
                                 : localTimerState.status === "paused"
-                                    ? i18n.t("tooltipResumeRest")
-                                    : i18n.t("tooltipPauseRest")
+                                    ? t("tooltipResumeRest")
+                                    : t("tooltipPauseRest")
                         }
                         positioning={{ placement: "top" }}
                     >
@@ -121,8 +121,8 @@ export default function Home() {
                     </Tooltip>
                     <Tooltip
                         content={localTimerState.mode === "rest"
-                            ? i18n.t("tooltipSkipRest")
-                            : i18n.t("tooltipSkipWork")
+                            ? t("tooltipSkipRest")
+                            : t("tooltipSkipWork")
                         }
                         positioning={{ placement: "right" }}
                     >

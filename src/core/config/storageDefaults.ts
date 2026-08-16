@@ -1,6 +1,7 @@
 import type { TimerState } from "../types/timerTypes"
 import type { UserSettings } from "../types/settingsTypes"
 import type { UserStats } from "../types/statTypes"
+import { resolveLocale } from "@/utils/utils"
 
 export const defaultTimerState: TimerState = {
     status: "idle",
@@ -15,7 +16,8 @@ export const defaultTimerState: TimerState = {
 export const defaultUserSettings: UserSettings = {
     soundsEnabled: true,
     notificationsEnabled: true,
-    loopSessions: false
+    loopSessions: false,
+    locale: resolveLocale(navigator.language)
 }
 
 export const defaultUserStats: UserStats = {}

@@ -18,7 +18,13 @@ import { notificationI18nMap, type NotificationContext, type NotificationType } 
 // utilities
 import { convertTimeStringToSeconds } from "@/utils/utils"
 
+// NEW: persist badge updates since locale can change
+type BadgeState = {
+    key: string
+} | null
+
 export default class TimetideController {
+    private badgeState: BadgeState = null
     private alarmsService: IAlarmsService
     private audioService: IAudioService
     private badgeService: IBadgeService
@@ -46,6 +52,8 @@ export default class TimetideController {
         this.runtimeService = runtimeService
         this.statService = statService
         this.storageService = storageService
+
+        this.i18nService.onLocaleChange(() => this.refreshBadgeText())
     }
 
     // -----------------------------
@@ -71,7 +79,7 @@ export default class TimetideController {
         })
 
         this.scheduleAlarm("work", expectedWorkEnd)
-        this.setBadge("badgeWork")
+        this.setBadgeText("badgeWork")
     }
 
     /**
@@ -93,7 +101,7 @@ export default class TimetideController {
         })
 
         this.scheduleAlarm("rest", expectedRestEnd)
-        this.setBadge("badgeRest")
+        this.setBadgeText("badgeRest")
     }
 
     /**
@@ -109,7 +117,7 @@ export default class TimetideController {
         })
 
         this.clearAlarmsAndBadge()
-        this.setBadge("badgePaused")
+        this.setBadgeText("badgePaused")
     }
 
     /**
@@ -138,11 +146,6 @@ export default class TimetideController {
                     break
                 }
         }
-
-        // const statsUpdate = this.calculateSkipStats(currState, workSecondsLeft, restSecondsLeft)
-        // if (statsUpdate) {
-        //     this.updateStats(statsUpdate)
-        // }
     }
 
     /**
@@ -305,8 +308,6 @@ export default class TimetideController {
     async initStorage(): Promise<void> {
         await Promise.all([
             this.storageService.set<TimerState>("timerState", defaultTimerState),
-            // this.storageService.set<BaseStats>("baseStats", defaultBaseStats, "sync"),
-            // this.storageService.set<DatedStats>("datedStats", defaultDatedStats, "sync"),
             this.storageService.set<UserSettings>("userSettings", defaultUserSettings, "sync")
         ])
     }
@@ -360,12 +361,22 @@ export default class TimetideController {
         this.alarmsService.createAlarm({ name, when })
     }
 
-    private setBadge(key: string): void {
+    private setBadgeText(key: string): void {
+        this.badgeState = { key }
+        this.badgeService.setBadgeText(this.i18nService.t(key))
+    }
+
+    private refreshBadgeText(): void {
+        if (!this.badgeState) return
+
+        const { key } = this.badgeState
         this.badgeService.setBadgeText(this.i18nService.t(key))
     }
 
     private clearAlarmsAndBadge(): void {
         this.alarmsService.clearAllAlarms()
+        
+        this.badgeState = null
         this.badgeService.clearBadgeText()
     }
 
@@ -474,57 +485,6 @@ export default class TimetideController {
             restSecondsLeft: totalRestSeconds
         }
     }
-
-    // private async getStats(): Promise<[BaseStats, DatedStats]> {
-    //     return await Promise.all([
-    //         this.storageService.get<BaseStats>("baseStats", "sync").then(stats => stats ?? defaultBaseStats),
-    //         this.storageService.get<DatedStats>("datedStats", "sync").then(stats => stats ?? defaultDatedStats)
-    //     ])
-    // }
-
-    // private getDailyStats(datedStats: DatedStats, isoDate: string) {
-    //     return datedStats[isoDate] ?? {
-    //         workSeconds: 0,
-    //         restSeconds: 0,
-    //         workSkips: 0,
-    //         restSkips: 0,
-    //         resets: 0
-    //     }
-    // }
-
-    // private updateStatsData(
-    //     baseStats: BaseStats,
-    //     dailyStats: any,
-    //     type: StatsUpdateType,
-    //     workIncrementSeconds: number,
-    //     restIncrementSeconds: number
-    // ): void {
-    //     if (type === "reset") {
-    //         baseStats.totalResets++
-    //         dailyStats.totalResets++
-    //     } else if (type === "skipWork") {
-    //         baseStats.totalWorkSkips++
-    //         dailyStats.workSkips++
-    //     } else if (type === 'skipRest') {
-    //         baseStats.totalRestSkips++
-    //         dailyStats.restSkips++
-    //     }
-
-    //     baseStats.totalWorkSeconds += workIncrementSeconds
-    //     baseStats.totalRestSeconds += restIncrementSeconds
-    //     dailyStats.workSeconds += workIncrementSeconds
-    //     dailyStats.restSeoncds += restIncrementSeconds
-    // }
-
-    // private async saveStats(
-    //     baseStats: BaseStats,
-    //     datedStats: DatedStats
-    // ): Promise<void> {
-    //     await Promise.all([
-    //         this.storageService.set<BaseStats>("baseStats", baseStats, "sync"),
-    //         this.storageService.set<DatedStats>("datedStats", datedStats, "sync")
-    //     ])
-    // }
 
     private getNotificationContext(
         notificationType: NotificationType,

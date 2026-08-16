@@ -147,3 +147,104 @@ export function getSecondsRemaining(
     if (!expectedEnd) return 0
     return Math.max(0, Math.ceil((expectedEnd - Date.now()) / 1000))
 }
+
+// Folder names in public/_locales
+export const AVAILABLE_LOCALES = [
+    "am", "bg", "bn", "ca", "cs", "da", "de", "el", "en", "en_AU", "en_GB", "en_US",
+    "es", "es_419", "et", "fi", "fil", "fr", "gu", "hi", "hr", "hu", "id", "it", "ja",
+    "kn", "ko", "lt", "lv", "ml", "mr", "ms", "nl", "no", "pl", "pt_BR", "pt_PT", "ro",
+    "ru", "sk", "sr", "sv", "sw", "ta", "te", "th", "tr", "uk", "vi", "zh_CN", "zh_TW"
+]
+
+type Continent = 
+    | "Asia" | "Africa" | "North America" | "South America" | "Antarctica" | "Europe" | "Australia"
+
+export const LOCALE_DATA: Record<(typeof AVAILABLE_LOCALES)[number], { flag: string, continent: Continent }> = {
+    am:     { flag: "🇪🇹", continent: "Africa" },
+    bg:     { flag: "🇧🇬", continent: "Europe" },
+    bn:     { flag: "🇧🇩", continent: "Asia" },
+    ca:     { flag: "🇪🇸", continent: "Europe" },
+    cs:     { flag: "🇨🇿", continent: "Europe" },
+    da:     { flag: "🇩🇰", continent: "Europe" },
+    de:     { flag: "🇩🇪", continent: "Europe" },
+    el:     { flag: "🇬🇷", continent: "Europe" },
+    en:     { flag: "🇺🇸", continent: "North America" },
+    en_AU:  { flag: "🇦🇺", continent: "Australia" },
+    en_GB:  { flag: "🇬🇧", continent: "Europe" },
+    en_US:  { flag: "🇺🇸", continent: "North America" },
+    es:     { flag: "🇪🇸", continent: "Europe" },
+    es_419: { flag: "🌎", continent: "South America" },
+    et:     { flag: "🇪🇪", continent: "Europe" },
+    fi:     { flag: "🇫🇮", continent: "Europe" },
+    fil:    { flag: "🇵🇭", continent: "Asia" },
+    fr:     { flag: "🇫🇷", continent: "Europe" },
+    gu:     { flag: "🇮🇳", continent: "Asia" },
+    hi:     { flag: "🇮🇳", continent: "Asia" },
+    hr:     { flag: "🇭🇷", continent: "Europe" },
+    hu:     { flag: "🇭🇺", continent: "Europe" },
+    id:     { flag: "🇮🇩", continent: "Asia" },
+    it:     { flag: "🇮🇹", continent: "Europe" },
+    ja:     { flag: "🇯🇵", continent: "Asia" },
+    kn:     { flag: "🇮🇳", continent: "Asia" },
+    ko:     { flag: "🇰🇷", continent: "Asia" },
+    lt:     { flag: "🇱🇹", continent: "Europe" },
+    lv:     { flag: "🇱🇻", continent: "Europe" },
+    ml:     { flag: "🇮🇳", continent: "Asia" },
+    mr:     { flag: "🇮🇳", continent: "Asia" },
+    ms:     { flag: "🇲🇾", continent: "Asia" },
+    nl:     { flag: "🇳🇱", continent: "Europe" },
+    no:     { flag: "🇳🇴", continent: "Europe" },
+    pl:     { flag: "🇵🇱", continent: "Europe" },
+    pt_BR:  { flag: "🇧🇷", continent: "South America" },
+    pt_PT:  { flag: "🇵🇹", continent: "Europe" },
+    ro:     { flag: "🇷🇴", continent: "Europe" },
+    ru:     { flag: "🇷🇺", continent: "Europe" },
+    sk:     { flag: "🇸🇰", continent: "Europe" },
+    sr:     { flag: "🇷🇸", continent: "Europe" },
+    sv:     { flag: "🇸🇪", continent: "Europe" },
+    sw:     { flag: "🇰🇪", continent: "Africa" },
+    ta:     { flag: "🇮🇳", continent: "Asia" },
+    te:     { flag: "🇮🇳", continent: "Asia" },
+    th:     { flag: "🇹🇭", continent: "Asia" },
+    tr:     { flag: "🇹🇷", continent: "Asia" },
+    uk:     { flag: "🇺🇦", continent: "Europe" },
+    vi:     { flag: "🇻🇳", continent: "Asia" },
+    zh_CN:  { flag: "🇨🇳", continent: "Asia" },
+    zh_TW:  { flag: "🇹🇼", continent: "Asia" },
+}
+
+/**
+ * Resolves a raw locale into a supported locale of the app
+ * 
+ * @param rawLocale a raw locale string (BCP 47 language tag)
+ * @returns the resolved locale
+ */
+export function resolveLocale(rawLocale: string): string {
+    // "pt-BR" -> "pt_BR" to match folder naming
+    const normalized = rawLocale.replace("-", "_")
+
+    if (AVAILABLE_LOCALES.includes(normalized)) {
+        return normalized
+    }
+
+    // try case-insensitive exact match, e.g. "en-us" -> "en_US"
+    const exactMatch = AVAILABLE_LOCALES.find(
+        (locale) => locale.toLowerCase() === normalized.toLowerCase()
+    )
+
+    if (exactMatch) {
+        return exactMatch
+    }
+
+    // fall back to the base language, e.g. "fr_CA" -> "fr"
+    const baseLang = normalized.split("_")[0]
+    const baseMatch = AVAILABLE_LOCALES.find(
+        (locale) => locale.toLowerCase() === baseLang.toLowerCase()
+    )
+
+    if (baseMatch) {
+        return baseMatch
+    }
+
+    return "en"
+}
