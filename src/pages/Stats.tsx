@@ -1,64 +1,111 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useCallback, Fragment } from "react"
 import { Chart, useChart } from "@chakra-ui/charts"
-import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts"
+import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts"
 import type { DateRangeStats, YearStats } from "@/core/types/statTypes"
-import { getYearStorageKey } from "@/core/types/statTypes"
-import { convertSecondsToTimeString, getTimePartitions } from "@/utils/utils"
-import SeedStatsButton from "@/dev/SeedStatsButton"
-import { Box, ColorSwatch, createListCollection, Flex, HStack, Portal, Select, Span, Stack, Text } from "@chakra-ui/react"
-
+import { emptyDayStats, getYearStorageKey } from "@/core/types/statTypes"
+import { convertSecondsToTimeString, getDurationParts, getTimePartitions } from "@/utils/utils"
+import { Box, ColorSwatch, createListCollection, Flex, HStack, Portal, Select, Span, Stack, Stat, Text } from "@chakra-ui/react"
 import { useController } from "@/contexts/TimetideControllerContext"
 import { useI18n } from "@/contexts/I18nContext"
 
 type DatedData = {
     isoDate: string
-    workSeconds: number | null
-    restSeconds: number | null
+    workSeconds: number
+    restSeconds: number
 }
 
-const RANGE_DAYS = 30
+const TIME_PERIODS = {
+    L7:  { range: 7 },
+    L14: { range: 14 },
+    L30: { range: 30 },
+    L90: { range: 90 },
+} as const
 
-const timePeriods = createListCollection({
-    items: [
-        { label: "last 7 days", value: "L7" },
-        { label: "last 14 days", value: "L14" },
-        { label: "last 30 days", value: "L30" },
-        { label: "last 90 days", value: "L90" },
-        { label: "all time", value: "L"}
-    ],
-})
+type TimePeriodValue = keyof typeof TIME_PERIODS
+const DEFAULT_PERIOD: TimePeriodValue = "L7"
+
+// "N days ago" math
+function daysAgo(from: Date, days: number): Date {
+    const d = new Date(from)
+    d.setHours(0, 0, 0, 0)
+    d.setDate(d.getDate() - days)
+    return d
+}
+
+// Generates YYYY-MM-DD for every day in [start, end], inclusive.
+function isoDateRange(start: Date, end: Date): string[] {
+    const dates: string[] = []
+    const cur = new Date(start)
+    cur.setHours(0, 0, 0, 0)
+    const last = new Date(end)
+    last.setHours(0, 0, 0, 0)
+
+    while (cur <= last) {
+        dates.push(cur.toISOString().slice(0, 10))
+        cur.setDate(cur.getDate() + 1)
+    }
+    return dates
+}
 
 export default function Stats() {
     const { controller: timetideController } = useController()
     const { t } = useI18n()
 
-    const [timetideDatedData, setTimetideDatedData] = useState<DatedData[]>([])
+    // Rebuild whenever locale changes, since Select.ValueText reads `label` off this collection.
+    const timePeriodsCollection = useMemo(
+        () =>
+            createListCollection({
+                items: (Object.entries(TIME_PERIODS) as [TimePeriodValue, typeof TIME_PERIODS[TimePeriodValue]][])
+                    .map(([value, { range }]) => ({
+                        value,
+                        label: t(`statLast${range}`),
+                    })),
+            }),
+        [t]
+    )
 
-    const { start, end, years } = useMemo(() => {
+    const [datedData, setDatedData] = useState<DatedData[]>([])
+    const [aggregation, setAggregation] = useState<{ workSeconds: number, restSeconds: number}>({
+        workSeconds: 0, restSeconds: 0
+    })
+    const aggregationBySeries: Record<typeof SERIES_ORDER[number], number> = {
+        workSeconds: aggregation.workSeconds,
+        restSeconds: aggregation.restSeconds,
+    }
+    const [periodValue, setPeriodValue] = useState<TimePeriodValue>(DEFAULT_PERIOD)
+    const range = TIME_PERIODS[periodValue].range
+
+    // Recompute start/end only when the range actually changes.
+    const { start, end } = useMemo(() => {
         const end = new Date()
-        const start = new Date()
-        start.setDate(start.getDate() - (RANGE_DAYS - 1))
+        const start = daysAgo(end, range - 1)
+        return { start, end }
+    }, [range])
 
-        const years = new Set<number>()
-        for (let y = start.getFullYear(); y <= end.getFullYear(); y++) years.add(y)
+    const fetchRangeData = useCallback(async () => {
+        const stats = await timetideController.getStatsForRange(start, end)
 
-        return { start, end, years }
-    }, [])
+        // Index fetched stats by isoDate for O(1) lookup while filling gaps.
+        const statsByDate = new Map(stats.map((s: DateRangeStats) => [s.isoDate, s]))
+
+        const filled: DatedData[] = isoDateRange(start, end).map((isoDate) => {
+            const existing = statsByDate.get(isoDate)
+            const { workSeconds, restSeconds } = existing ?? emptyDayStats()
+            return { isoDate, workSeconds, restSeconds }
+        })
+
+        setDatedData(filled)
+        setAggregation({
+            workSeconds: filled.reduce((total, dayData) => total + dayData.workSeconds, 0),
+            restSeconds: filled.reduce((total, dayData) => total + dayData.restSeconds, 0)
+        })
+    }, [timetideController, start, end])
 
     useEffect(() => {
-        const mapToDatedData = (stats: DateRangeStats[]): DatedData[] =>
-            stats.map((s) => ({
-                isoDate: s.isoDate,
-                workSeconds: s.workSeconds,
-                restSeconds: s.restSeconds
-            }))
-
-        const fetchRangeData = async () => {
-            const stats = await timetideController.getStatsForRange(start, end)
-            setTimetideDatedData(mapToDatedData(stats))
-        }
+        const years = new Set<number>()
+        for (let y = start.getFullYear(); y <= end.getFullYear(); y++) years.add(y)
 
         // Re-fetch the whole range whenever any touched year's storage changes,
         // rather than trying to patch a single day in place.
@@ -74,18 +121,16 @@ export default function Stats() {
         return () => {
             unsubscribers.forEach((unsub) => unsub())
         }
-    }, [start, end, years])
+    }, [fetchRangeData, start, end, timetideController])
 
     const chart = useChart({
-        data: timetideDatedData,
+        data: datedData,
         series: [
             { name: "workSeconds", label: t("titleWorkTimeInput"), color: "timetide.400" },
             { name: "restSeconds", label: t("titleRestTimeInput"), color: "gray.300" },
         ]
     })
 
-    // NOTE: name is lexicographically ordered for some reason...
-    // (so workSeconds doesn't come before restSeconds since ord(r) < ord(w))
     const SERIES_ORDER = ["workSeconds", "restSeconds"] as const
     const orderedSeries = [...chart.series].sort(
         (a, b) => SERIES_ORDER.indexOf(a.name as typeof SERIES_ORDER[number]) -
@@ -94,31 +139,43 @@ export default function Stats() {
 
     return (
         <>
-            <Select.Root collection={timePeriods} size="sm" width="45%" defaultValue={[timePeriods.at(0)?.label || ""]}>
-                <Select.HiddenSelect />
-                <Select.Control>
-                    <Select.Trigger>
-                        <Select.ValueText placeholder="Select timeframe"></Select.ValueText>
-                    </Select.Trigger>
-                </Select.Control>
-                <Portal>
-                    <Select.Positioner>
-                    <Select.Content>
-                        {timePeriods.items.map((period) => (
-                        <Select.Item item={period} key={period.value}>
-                            {period.label}
-                            <Select.ItemIndicator />
-                        </Select.Item>
-                        ))}
-                    </Select.Content>
-                    </Select.Positioner>
-                </Portal>
-            </Select.Root>
+            <Flex justify="end" mr="1">
+                <Select.Root
+                    collection={timePeriodsCollection}
+                    value={[periodValue]}
+                    onValueChange={(e) => {
+                        const next = e.value[0] as TimePeriodValue
+                        if (next in TIME_PERIODS) setPeriodValue(next)
+                    }}
+                    size="sm"
+                    width="45%"
+                >
+                    <Select.HiddenSelect />
+                    <Select.Control>
+                        <Select.Trigger>
+                            <Select.ValueText />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                            <Select.Indicator />
+                        </Select.IndicatorGroup>
+                    </Select.Control>
+                    <Portal>
+                        <Select.Positioner>
+                            <Select.Content>
+                                {timePeriodsCollection.items.map((period) => (
+                                    <Select.Item item={period} key={period.value}>
+                                        {/* {period.label} */}
+                                        {t(`statLast${TIME_PERIODS[period.value].range}`)}
+                                        <Select.ItemIndicator />
+                                    </Select.Item>
+                                ))}
+                            </Select.Content>
+                        </Select.Positioner>
+                    </Portal>
+                </Select.Root>
+            </Flex>
 
-            <Chart.Root
-                chart={chart}
-                minW="inherit"
-            >
+            <Chart.Root chart={chart}>
                 <LineChart data={chart.data} responsive>
                     <CartesianGrid stroke={chart.color("border")} />
                     <XAxis dataKey={chart.key("isoDate")} axisLine={false} hide />
@@ -128,18 +185,8 @@ export default function Stats() {
                         cursor={true}
                         content={({ active, payload, label }) => {
                             if (!active || !payload?.length) return null
-
                             return (
-                                <Stack
-                                    minW="8rem"
-                                    gap="1"
-                                    rounded="l2"
-                                    bg="bg.panel"
-                                    px="2.5"
-                                    py="1"
-                                    textStyle="xs"
-                                    shadow="md"
-                                >
+                                <Stack minW="8rem" gap="1" rounded="l2" bg="bg.panel" px="2.5" py="1" textStyle="xs" shadow="md">
                                     <Text fontWeight="medium">{label}</Text>
                                     <Box>
                                         {payload.map((item, index) => {
@@ -156,7 +203,6 @@ export default function Stats() {
                                                     )}
                                                     <HStack justify="space-between" flex="1">
                                                         <Span color="fg.muted">{seriesConfig?.label || item.name}</Span>
-                                                        {/* fix: use != null instead of truthy check, so 0 still renders */}
                                                         {item.value != null && (
                                                             <Text fontWeight="medium" fontVariantNumeric="tabular-nums">
                                                                 {formattedValue}
@@ -171,28 +217,6 @@ export default function Stats() {
                             )
                         }}
                     />
-                    <Legend
-                        wrapperStyle={{ marginBottom: -4 }}
-                        content={() => (
-                            <Flex gap="3" justify="center">
-                                {orderedSeries.map((graph) => (
-                                    <HStack
-                                        key={graph.name}
-                                        gap="1.5"
-                                        style={{
-                                            opacity: chart.getSeriesOpacity(graph.name, 0.6),
-                                            cursor: "pointer"
-                                        }}
-                                        // onMouseEnter={() => chart.setHighlightedSeries(graph.name!)}
-                                        // onMouseLeave={() => chart.setHighlightedSeries(null)}
-                                    >
-                                        <ColorSwatch boxSize="2" value={chart.color(graph.color)} />
-                                        <Span color="fg.muted">{graph.label}</Span>
-                                    </HStack>
-                                ))}
-                            </Flex>
-                        )}
-                    />
                     {orderedSeries.map((graph) => (
                         <Line
                             key={graph.name}
@@ -200,7 +224,8 @@ export default function Stats() {
                             stroke={chart.color(graph.color)}
                             strokeWidth={2}
                             type="bump"
-                            isAnimationActive={false}
+                            isAnimationActive={true}
+                            animationDuration={1000}
                             dot={false}
                             strokeDasharray={graph.strokeDasharray}
                             opacity={chart.getSeriesOpacity(graph.name)}
@@ -208,7 +233,29 @@ export default function Stats() {
                     ))}
                 </LineChart>
             </Chart.Root>
-            <SeedStatsButton />
+
+            <HStack gap="0" mx="1">
+                {orderedSeries.map((graph) => {
+                    const seconds = aggregationBySeries[graph.name as typeof SERIES_ORDER[number]]
+                    const parts = getDurationParts(seconds)
+
+                    return (
+                        <Stat.Root key={graph.name} borderWidth={0} alignItems="center">
+                            <Stat.Label mb="-1.5">
+                                <ColorSwatch boxSize="3" value={chart.color(graph.color)} />
+                                {graph.label}
+                            </Stat.Label>
+                            <Stat.ValueText alignItems="baseline" gap="0.5">
+                                {parts.map((part) => (
+                                    <Fragment key={part.i18nKey}>
+                                        {part.value} <Stat.ValueUnit>{t(part.i18nKey)}</Stat.ValueUnit>
+                                    </Fragment>
+                                ))}
+                            </Stat.ValueText>
+                        </Stat.Root>
+                    )
+                })}
+            </HStack>
         </>
     )
 }

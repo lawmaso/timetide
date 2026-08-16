@@ -248,3 +248,22 @@ export function resolveLocale(rawLocale: string): string {
 
     return "en"
 }
+
+type DurationPart = { value: number; i18nKey: "unitHour" | "unitMinute" | "unitSecond" }
+
+export function getDurationParts(totalSeconds: number): DurationPart[] {
+    const h = Math.floor(totalSeconds / 3600)
+    const m = Math.floor((totalSeconds % 3600) / 60)
+    const s = Math.floor(totalSeconds % 60)
+
+    const parts: DurationPart[] = [
+        { value: h, i18nKey: "unitHour" },
+        { value: m, i18nKey: "unitMinute" },
+        { value: s, i18nKey: "unitSecond" },
+    ]
+
+    // drop leading zero units (e.g. don't show "0h" if there are no hours),
+    // but always keep at least the seconds part so 0s renders as "0s"
+    const firstNonZero = parts.findIndex((p) => p.value > 0)
+    return firstNonZero === -1 ? [parts[2]] : parts.slice(firstNonZero)
+}
