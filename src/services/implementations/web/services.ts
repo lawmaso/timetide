@@ -7,11 +7,21 @@ import WebRuntimeService from "./WebRuntimeService"
 import WebStatService from "./WebStatService"
 import WebStorageService from "./WebStorageService"
 
-const sharedRuntimeService = new WebRuntimeService()
-const sharedStorageService = new WebStorageService()
+let sharedRuntimeService: WebRuntimeService | null = null
+let sharedStorageService: WebStorageService | null = null
+
+function getRuntimeService() {
+    if (!sharedRuntimeService) sharedRuntimeService = new WebRuntimeService()
+    return sharedRuntimeService
+}
+
+function getStorageService() {
+    if (!sharedStorageService) sharedStorageService = new WebStorageService()
+    return sharedStorageService
+}
 
 export const createAlarmsService = () => new WebAlarmsService()
-export const createAudioService = () => new WebAudioService(sharedRuntimeService)
+export const createAudioService = () => new WebAudioService(getRuntimeService())
 export const createBadgeService = () => new WebBadgeService()
 export const createI18nService = async () => {
     const webI18nService = new WebI18nService()
@@ -19,6 +29,6 @@ export const createI18nService = async () => {
     return webI18nService
 }
 export const createNotificationService = () => new WebNotificationsService()
-export const createRuntimeService = () => sharedRuntimeService
-export const createStatService = () => new WebStatService(sharedStorageService)
-export const createStorageService = () => sharedStorageService
+export const createRuntimeService = () => getRuntimeService()
+export const createStatService = () => new WebStatService(getStorageService())
+export const createStorageService = () => getStorageService()
