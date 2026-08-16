@@ -15,7 +15,6 @@ export default class WebStatService implements IStatService {
         day: Date,
         duration: number
     ): Promise<boolean> {
-        console.log(`type=${type}, +${duration}`)
         if (duration <= 0) return false
         
         const field = this.getStatsField(type)

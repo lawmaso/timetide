@@ -40,6 +40,15 @@ export default class WebExtensionStatService implements IStatService {
         }
     }
 
+
+    /**
+     * Gets stored statistics across a time range. Does not fill in
+     * the returned stats with empty stats if a day has no activity.
+     * 
+     * @param start the start date (inclusive)
+     * @param end the end date (inclusive)
+     * @returns the stats for the dates in the range [start, end]
+     */
     async getStatsForRange(start: Date, end: Date): Promise<DateRangeStats[]> {
         const startYear = start.getFullYear()
         const endYear = end.getFullYear()
@@ -59,6 +68,7 @@ export default class WebExtensionStatService implements IStatService {
             }
         }
 
+        // NOTE: storage can be out of order, sort to restore date order (i.e., start -> end)
         return results.sort((a, b) => a.isoDate.localeCompare(b.isoDate))
     }
 
