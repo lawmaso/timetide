@@ -4,12 +4,17 @@ import path from "path"
 import { viteStaticCopy } from "vite-plugin-static-copy"
 
 // https://vite.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
     return {
         resolve: {
             alias: {
+                "@/services/implementations/target": path.resolve(__dirname,
+                    mode === "extension"
+                        ? "src/services/implementations/webextension"
+                        : "src/services/implementations/web"
+                ),  // specific alias comes first (before general ones)
                 "@": path.resolve(__dirname, "src"),
-                "~tests": path.resolve(__dirname, "tests")
+                "~tests": path.resolve(__dirname, "tests"),
             }
         },
         plugins: [
