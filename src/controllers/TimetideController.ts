@@ -510,9 +510,9 @@ export default class TimetideController {
                 break
             case "rest":
                 await this.statService.incrementStats(
-                    "work",
+                    "rest",
                     new Date(),
-                    convertTimeStringToSeconds(timerState.lastWorkTimeString)
+                    convertTimeStringToSeconds(timerState.lastRestTimeString)
                 )
 
                 const { loopSessions } = await this.getUserSettings()
