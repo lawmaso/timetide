@@ -18,7 +18,6 @@ export default class WebExtensionAudioService implements IAudioService {
     }
 
     private initAudioElements() {
-        console.log("[init]")
         this.workTimerEndAudio = new Audio(this.runtimeService.getUrl("/sounds/timerEnd.mp3"))
         this.restTimerEndAudio = new Audio(this.runtimeService.getUrl("/sounds/timerEnd.mp3"))
 
