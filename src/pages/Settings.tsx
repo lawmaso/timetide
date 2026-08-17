@@ -142,7 +142,8 @@ export default function Settings() {
                     collection={locales}
                     defaultValue={[locale]}
                     size="md"
-                    width="180px"
+                    width="200px"
+                    maxW="200px"
                     onValueChange={async (e) => {
                         setLocale(e.value[0])
                         await timetideController.updateUserSettings("locale", e.value[0])

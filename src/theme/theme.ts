@@ -4,7 +4,10 @@ export const system = createSystem(defaultConfig, {
     globalCss: {
         "html, body": {
             "minWidth": "360px",
-            "minHeight": "max-content"
+            "minHeight": "max-content",
+            "width": "360px",
+            "overflowX": "hidden",
+            "boxSizing": "border-box",
         },
     },
     theme: {
@@ -15,6 +18,7 @@ export const system = createSystem(defaultConfig, {
                     200: { value: "#99EFEE" },
                     300: { value: "#66E6E6" },
                     400: { value: "#00CECB" },
+                    // 400: { value: "#6CCDA6" },
                 },
             },
         },

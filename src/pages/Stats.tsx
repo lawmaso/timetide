@@ -138,7 +138,7 @@ export default function Stats() {
     )
 
     return (
-        <>
+        <Fragment>
             <Flex justify="end" mr="1">
                 <Select.Root
                     collection={timePeriodsCollection}
@@ -256,6 +256,6 @@ export default function Stats() {
                     )
                 })}
             </HStack>
-        </>
+        </Fragment>
     )
 }
