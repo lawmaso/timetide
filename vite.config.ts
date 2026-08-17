@@ -38,6 +38,7 @@ export default defineConfig(() => {
                     }
                 }
             },
+            modulePreload: false,
             outDir: "dist",
             emptyOutDir: true
         },
