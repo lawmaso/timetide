@@ -3,7 +3,6 @@ import { Flex, HStack, Tabs } from "@chakra-ui/react"
 import { LuChartLine, LuHouse, LuSettings } from "react-icons/lu"
 import { TimetideIcon } from "./components/ui/icon"
 import { TimetideHeading } from "./components/ui/TimetideHeading"
-import { RootContainerProvider } from "./contexts/RootContainerContext"
 
 export type TabName = "home" | "stats" | "settings"
 const Home = React.lazy(() => import("./pages/Home"))
@@ -64,45 +63,43 @@ export default function App() {
     }, [])
 
     return (
-        <RootContainerProvider rootRef={rootRef}>
-            <Flex
-                ref={rootRef}
-                flexDir="column"
-                p="4"
-                gapY="2"
-                width="360px"
-                maxW="360px"
-                minW="0"
-                boxSizing="border-box"
-                overflowX="hidden"
-                mx="auto"
+        <Flex
+            ref={rootRef}
+            flexDir="column"
+            p="4"
+            gapY="2"
+            width="360px"
+            maxW="360px"
+            minW="0"
+            boxSizing="border-box"
+            overflowX="hidden"
+            mx="auto"
+        >
+            <Tabs.Root
+                defaultValue="home"
+                variant="outline"
+                size="sm"
+                width="100%"
+                minWidth={0}
             >
-                <Tabs.Root
-                    defaultValue="home"
-                    variant="outline"
-                    size="sm"
-                    width="100%"
-                    minWidth={0}
-                >
-                    <Tabs.List justifyContent="space-between">
-                        <TimetideHeading />
-                        <HStack gap="-1">
-                            {allContent.map(({ value, icon }) => (
-                                <Tabs.Trigger value={value} key={value}>
-                                    <TimetideIcon color="timetide.400">
-                                        {icon}
-                                    </TimetideIcon>
-                                </Tabs.Trigger>
-                            ))}
-                        </HStack>
-                    </Tabs.List>
-                    {allContent.map(({ value, content }) => (
-                        <Tabs.Content key={value} value={value}>
-                            {content()}
-                        </Tabs.Content>
-                    ))}
-                </Tabs.Root>
-            </Flex>
-        </RootContainerProvider>
+                <Tabs.List justifyContent="space-between">
+                    <TimetideHeading />
+                    <HStack gap="-1">
+                        {allContent.map(({ value, icon }) => (
+                            <Tabs.Trigger value={value} key={value}>
+                                <TimetideIcon color="timetide.400">
+                                    {icon}
+                                </TimetideIcon>
+                            </Tabs.Trigger>
+                        ))}
+                    </HStack>
+                </Tabs.List>
+                {allContent.map(({ value, content }) => (
+                    <Tabs.Content key={value} value={value}>
+                        {content()}
+                    </Tabs.Content>
+                ))}
+            </Tabs.Root>
+        </Flex>
     )
 }
