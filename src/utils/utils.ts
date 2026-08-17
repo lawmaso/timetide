@@ -100,7 +100,7 @@ export function formatTimeString(timeString: string): string {
  * @returns the progress as a percentage.
  */
 export function calculateProgress(remainingSeconds: number, startedTimeString: string): number {
-    return (remainingSeconds / convertTimeStringToSeconds(startedTimeString)) * 100
+    return Math.max(0, (remainingSeconds / convertTimeStringToSeconds(startedTimeString)) * 100)
 }
 
 /**
